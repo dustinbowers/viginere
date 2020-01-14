@@ -1,45 +1,54 @@
-#!/usr/local/bin/python
-
 import sys
 
-ord_start = ord('A')
-grid = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-grid_len = len(grid)
 
-def cipher(key, message, direction=0):
-    output = [None] * len(message)
-    inphrase_upper = message.upper()
-    key_upper = key.upper()
+class Viginere:
 
-    i = 0
-    keylen = len(key)
-    for c in inphrase_upper:
-        char_i = ord(inphrase_upper[i])
-        char_index = char_i - ord_start
-        key_char = key_upper[i % keylen]
-        key_index = grid.index(key_char)
-        if direction == 0:
-            grid_offset = (char_index + key_index) % grid_len
-        elif direction == 1:
-            grid_offset = (char_index - key_index) % grid_len
+    def __init__(self):
+        self.grid = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        self.grid_len = len(self.grid)
+        self.ord_start = ord(self.grid[0])
 
-        code = grid[grid_offset]
-        output[i] = code
-        i = i+1
+    def process(self, key, message, decrypt=False):
+        output = [''] * len(message)
+        message = message.upper().replace(' ', '')
+        key = key.upper()
 
-    return ''.join(output)
+        i = 0
+        keylen = len(key)
+        for c in message:
+            char_i = ord(message[i])
+            char_index = char_i - self.ord_start
+            key_char = key[i % keylen]
+            key_index = self.grid.index(key_char)
+            if decrypt:
+                grid_offset = (char_index - key_index) % self.grid_len
+            else:
+                grid_offset = (char_index + key_index) % self.grid_len
+
+            code = self.grid[grid_offset]
+            output[i] = code
+            i = i + 1
+
+        return ''.join(output)
+
 
 def main():
     # process command line args
+    if len(sys.argv) != 3:
+        print("Usage: python viginere.py <passphrase> <plaintext>")
+        return
+
     argv = sys.argv
     key = argv[1]
-    inphrase = argv[2]
+    phrase = argv[2]
 
-    outphrase = cipher(key, inphrase)
-    decoded = cipher(key, outphrase, 1)
+    viginere = Viginere()
+    encrypted = viginere.process(key, phrase)
+    decrypted = viginere.process(key, encrypted, decrypt=True)
 
-    print "key: {0}\ninput: {1}\nciphertext: {2}\ndecoded : {3}".format(key, inphrase, outphrase, decoded)
+    print("key: {0}\ninput: {1}\nciphertext: {2}\ndecoded : {3}"
+          .format(key, phrase, encrypted, decrypted))
+
 
 if __name__ == "__main__":
     main()
-
